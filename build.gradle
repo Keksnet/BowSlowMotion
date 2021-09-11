@@ -1,0 +1,27 @@
+plugins {
+    id 'java'
+}
+
+group = 'de.neo.bow'
+archivesBaseName = 'BowSlowMotion'
+version = '1.0'
+
+repositories {
+    mavenCentral()
+    maven {
+        name 'neo-repo'
+        allowInsecureProtocol true
+        url 'http://repo.neo8.de/'
+    }
+    maven {
+        name 'spigot-repo'
+        url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/'
+        content {
+            includeGroup 'org.spigotmc'
+        }
+    }
+}
+
+dependencies {
+    compileOnly 'org.spigotmc:spigot-api:1.17-R0.1-SNAPSHOT'
+}

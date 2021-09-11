@@ -1,0 +1,7 @@
+messages:
+  prefix: "PREFIX ->"
+  reload_complete: "Reload completed"
+options:
+  min_food_level: 6
+  food_decrease_rate: 4
+  fall_speed: 0.01
