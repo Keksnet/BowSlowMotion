@@ -12,11 +12,13 @@ public class BowReloadCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        BowMotionMain main = BowMotionMain.getInstance();
-        main.reloadConfig();
-        FileConfiguration config = main.getConfig();
-        String reload_msg = ChatColor.translateAlternateColorCodes('&', config.getString("messages.prefix") + " " + config.getString("messages.reload_complete"));
-        sender.spigot().sendMessage(TextComponent.fromLegacyText(reload_msg));
+        if(sender.hasPermission("bow.rl")) {
+            BowMotionMain main = BowMotionMain.getInstance();
+            main.reloadConfig();
+            FileConfiguration config = main.getConfig();
+            String reload_msg = ChatColor.translateAlternateColorCodes('&', config.getString("messages.prefix") + " " + config.getString("messages.reload_complete"));
+            sender.spigot().sendMessage(TextComponent.fromLegacyText(reload_msg));
+        }
         return false;
     }
 

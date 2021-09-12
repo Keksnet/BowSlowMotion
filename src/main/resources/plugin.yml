@@ -1,7 +1,7 @@
 name: BowSlowMotion
 author: Neo8
-version: 1.0
-api-version: 1.17
+version: 1.1
+api-version: 1.16
 main: de.neo.bow.BowMotionMain
 commands:
   bowrl:

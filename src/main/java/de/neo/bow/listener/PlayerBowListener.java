@@ -33,18 +33,20 @@ public class PlayerBowListener implements Listener {
     public void onInteract(PlayerInteractEvent e) {
         BowMotionMain main = BowMotionMain.getInstance();
         Player p = e.getPlayer();
-        Location loc = p.getLocation();
-        loc.setY(loc.getY() - 1.0);
-        if(loc.getBlock().getType().isSolid()) return;
-        if(e.getAction() == Action.RIGHT_CLICK_AIR || e.getAction() == Action.RIGHT_CLICK_BLOCK) {
-            if(p.getInventory().getItemInMainHand().getType() == Material.BOW) {
-                if(containsArrow(p.getInventory())) {
-                    if(p.getFoodLevel() > main.getConfig().getInt("options.min_food_level")) {
-                        Vector vel = p.getVelocity();
-                        calculateVelocity(vel);
-                        p.setVelocity(vel);
-                        this.slowMotion.add(p.getUniqueId());
-                        this.counter.put(p.getUniqueId(), 0);
+        if(p.hasPermission("bow.slowmotion.use")) {
+            Location loc = p.getLocation();
+            loc.setY(loc.getY() - 1.0);
+            if(loc.getBlock().getType().isSolid()) return;
+            if(e.getAction() == Action.RIGHT_CLICK_AIR || e.getAction() == Action.RIGHT_CLICK_BLOCK) {
+                if(p.getInventory().getItemInMainHand().getType() == Material.BOW) {
+                    if(containsArrow(p.getInventory())) {
+                        if(p.getFoodLevel() > main.getConfig().getInt("options.min_food_level")) {
+                            Vector vel = p.getVelocity();
+                            calculateVelocity(vel);
+                            p.setVelocity(vel);
+                            this.slowMotion.add(p.getUniqueId());
+                            this.counter.put(p.getUniqueId(), 0);
+                        }
                     }
                 }
             }
