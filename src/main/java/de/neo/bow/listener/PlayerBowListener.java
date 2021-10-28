@@ -1,53 +1,43 @@
 package de.neo.bow.listener;
 
 import de.neo.bow.BowMotionMain;
+import de.neo.bow.obj.BowPlayer;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.util.Vector;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class PlayerBowListener implements Listener {
 
-    private HashSet<UUID> slowMotion;
-    private HashMap<UUID, Integer> counter;
+    private final HashMap<UUID, BowPlayer> player;
 
     public PlayerBowListener() {
-        this.slowMotion = new HashSet<>();
-        this.counter = new HashMap<>();
+        this.player = new HashMap<>();
     }
 
     @EventHandler
     public void onInteract(PlayerInteractEvent e) {
-        BowMotionMain main = BowMotionMain.getInstance();
         Player p = e.getPlayer();
+        BowPlayer bowPlayer = getBowPlayer(p);
         if(p.hasPermission("bow.slowmotion.use")) {
             Location loc = p.getLocation();
             loc.setY(loc.getY() - 1.0);
             if(loc.getBlock().getType().isSolid()) return;
             if(e.getAction() == Action.RIGHT_CLICK_AIR || e.getAction() == Action.RIGHT_CLICK_BLOCK) {
-                if(p.getInventory().getItemInMainHand().getType() == Material.BOW) {
-                    if(containsArrow(p.getInventory())) {
-                        if(p.getFoodLevel() > main.getConfig().getInt("options.min_food_level")) {
-                            Vector vel = p.getVelocity();
-                            calculateVelocity(vel);
-                            p.setVelocity(vel);
-                            this.slowMotion.add(p.getUniqueId());
-                            this.counter.put(p.getUniqueId(), 0);
-                        }
-                    }
+                if(bowPlayer.validateSlowMotion()) {
+                    bowPlayer.activateNcpIgnore();
+                    bowPlayer.clearCounter();
+                    bowPlayer.setSlowMotion(true);
+                    bowPlayer.setSlowMotionVelocity();
                 }
             }
         }
@@ -57,24 +47,25 @@ public class PlayerBowListener implements Listener {
     public void onMove(PlayerMoveEvent e) {
         BowMotionMain main = BowMotionMain.getInstance();
         Player p = e.getPlayer();
-        if(this.slowMotion.contains(e.getPlayer().getUniqueId()) && p.getInventory().getItemInMainHand().getType() == Material.BOW) {
+        BowPlayer bowPlayer = getBowPlayer(p);
+        if(bowPlayer.isInSlowMotion() && bowPlayer.validateSlowMotion()) {
             if(p.getFoodLevel() <= main.getConfig().getInt("options.min_food_level")) {
-                this.slowMotion.remove(p.getUniqueId());
+                bowPlayer.setSlowMotion(false);
+                bowPlayer.clearCounter();
+                bowPlayer.deactivateNcpIgnore();
                 return;
             }
-            Vector vel = p.getVelocity();
-            calculateVelocity(vel);
-            p.setVelocity(vel);
-            if(this.counter.get(p.getUniqueId()) >= main.getConfig().getInt("options.food_decrease_rate")) {
-                p.setFoodLevel(p.getFoodLevel() - 1);
-                this.counter.put(p.getUniqueId(), 0);
-            }else {
-                this.counter.put(p.getUniqueId(), this.counter.get(p.getUniqueId()) + 1);
+            bowPlayer.setSlowMotionVelocity();
+            bowPlayer.tickFood();
+            if(bowPlayer.isOnGround()) {
+                bowPlayer.setSlowMotion(false);
+                bowPlayer.clearCounter();
+                bowPlayer.deactivateNcpIgnore();
+                bowPlayer.deactivateFalling();
             }
-            Location loc = p.getLocation();
-            loc.setY(loc.getY() - 1.0);
-            if(loc.getBlock().getType().isSolid()) {
-                this.slowMotion.remove(p.getUniqueId());
+        }else if(bowPlayer.isFalling()) {
+            if(bowPlayer.isOnGround()) {
+                bowPlayer.deactivateFalling();
             }
         }
     }
@@ -82,21 +73,39 @@ public class PlayerBowListener implements Listener {
     @EventHandler
     public void onShot(EntityShootBowEvent e) {
         if(e.getEntityType() == EntityType.PLAYER) {
-            this.slowMotion.remove(e.getEntity().getUniqueId());
+            Player p = (Player) e.getEntity();
+            BowPlayer bowPlayer = getBowPlayer(p);
+            bowPlayer.setSlowMotion(false);
+            bowPlayer.clearCounter();
+            bowPlayer.deactivateNcpIgnore();
         }
     }
 
-    private void calculateVelocity(Vector vel) {
+    @EventHandler
+    public void onDamage(EntityDamageEvent e) {
         BowMotionMain main = BowMotionMain.getInstance();
-        vel.setY(-main.getConfig().getDouble("options.fall_speed"));
+        if(e.getEntity() instanceof Player p) {
+            BowPlayer bowPlayer = getBowPlayer(p);
+            if(e.getCause() == EntityDamageEvent.DamageCause.FALL) {
+                if(bowPlayer.isFalling()) {
+                    if(p.hasPermission("bow.falldamage.ignore")) {
+                        e.setDamage(0.0);
+                    }else {
+                        e.setDamage(e.getDamage() * main.getConfig().getDouble("options.damage_multiplier"));
+                    }
+                }
+                bowPlayer.deactivateFalling();
+            }
+        }
     }
 
-    private boolean containsArrow(Inventory inv) {
-        AtomicBoolean flag = new AtomicBoolean(false);
-        BowMotionMain.arrows.stream().forEach(arrowType -> {
-            if(flag.get()) return;
-            flag.set(inv.contains(arrowType));
-        });
-        return flag.get();
+    private BowPlayer getBowPlayer(Player p) {
+        BowPlayer bowPlayer = this.player.get(p.getUniqueId());
+        if(bowPlayer == null) {
+            bowPlayer = new BowPlayer(p.getUniqueId());
+            this.player.put(p.getUniqueId(), bowPlayer);
+        }
+        return bowPlayer;
     }
+
 }

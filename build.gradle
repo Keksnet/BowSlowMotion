@@ -3,8 +3,7 @@ plugins {
 }
 
 group = 'de.neo.bow'
-archivesBaseName = 'BowSlowMotion'
-version = '1.1'
+version = '1.2'
 
 repositories {
     mavenCentral()
@@ -15,8 +14,13 @@ repositories {
             includeGroup 'org.spigotmc'
         }
     }
+    maven {
+        name 'md5-snapshots'
+        url 'https://repo.md-5.net/content/repositories/snapshots/'
+    }
 }
 
 dependencies {
     compileOnly 'org.spigotmc:spigot-api:1.17-R0.1-SNAPSHOT'
+    compileOnly 'fr.neatmonster:nocheatplus:3.16.1-SNAPSHOT'
 }
