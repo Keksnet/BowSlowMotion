@@ -1,7 +1,7 @@
 name: BowSlowMotion
 author: Neo8
 version: 1.2
-depend:
+softdepend:
   - NoCheatPlus
 api-version: 1.16
 main: de.neo.bow.BowMotionMain
