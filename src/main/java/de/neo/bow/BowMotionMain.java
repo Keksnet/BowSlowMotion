@@ -47,7 +47,6 @@ public class BowMotionMain extends JavaPlugin {
     public void reloadConfig() {
         super.reloadConfig();
         this.ncpSupport = this.getConfig().getBoolean("options.ncp_support", true);
-        getLogger().info("Enabled NoCheatPlus support");
     }
 
     private void loadArrows() {
@@ -68,7 +67,14 @@ public class BowMotionMain extends JavaPlugin {
             reloadConfig();
         }
         this.ncpSupport = this.getConfig().getBoolean("options.ncp_support", true);
-        getLogger().info("Enabled NoCheatPlus support");
+        if(this.ncpSupport) {
+            if(Bukkit.getPluginManager().isPluginEnabled("NoCheatPlus")) {
+                this.ncpSupport = true;
+                this.getLogger().info("NoCheatPlus detected. NCP support enabled.");
+            }else {
+                this.ncpSupport = false;
+            }
+        }
         InputStream defaultConf = getResource("config.yml");
         if(defaultConf == null) throw new RuntimeException("default config is missing");
         FileConfiguration def = YamlConfiguration.loadConfiguration(new InputStreamReader(defaultConf));

@@ -30,12 +30,20 @@ public class BowPlayer {
     public void activateNcpIgnore() {
         BowMotionMain main = BowMotionMain.getInstance();
         if(main.isNcpSupportDisabled()) return;
+        activateNcpIgnoreInternal();
+    }
+
+    private void activateNcpIgnoreInternal() {
         NCPExemptionManager.exemptPermanently(this.getUUID(), CheckType.MOVING_SURVIVALFLY);
     }
 
     public void deactivateNcpIgnore() {
         BowMotionMain main = BowMotionMain.getInstance();
         if(main.isNcpSupportDisabled()) return;
+        deactivateNcpIgnoreInternal();
+    }
+
+    private void deactivateNcpIgnoreInternal() {
         NCPExemptionManager.unexempt(this.getUUID(), CheckType.MOVING_SURVIVALFLY);
     }
 
