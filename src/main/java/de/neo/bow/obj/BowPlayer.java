@@ -51,7 +51,7 @@ public class BowPlayer {
         BowMotionMain main = BowMotionMain.getInstance();
         Player p = Bukkit.getPlayer(this.getUUID());
         if(p == null) throw new RuntimeException(this.getUUID() + " is offline");
-        return p.getInventory().getItemInMainHand().getType() == Material.BOW
+        return this.hasBow()
                 && p.getFoodLevel() > main.getConfig().getInt("options.min_food_level") && this.hasArrow();
     }
 
@@ -77,7 +77,7 @@ public class BowPlayer {
         Player p = Bukkit.getPlayer(this.getUUID());
         if(p == null) throw new RuntimeException(this.getUUID() + " is offline");
         Location loc = p.getLocation();
-        loc.setY(loc.getY() - 1.0);
+        loc.setY(loc.getY() - BowMotionMain.getInstance().getConfig().getDouble("options.fall_speed"));
         return loc.getBlock().getType().isSolid();
     }
 
@@ -101,13 +101,22 @@ public class BowPlayer {
         return flag.get();
     }
 
+    private boolean hasBow() {
+        Player p = Bukkit.getPlayer(this.getUUID());
+        if(p == null) throw new RuntimeException(this.getUUID() + " is offline");
+        return p.getInventory().getItemInMainHand().getType() == Material.BOW
+                || p.getInventory().getItemInMainHand().getType() == Material.TRIDENT;
+    }
+
     public UUID getUUID() {
         return this.uuid;
     }
 
     public void setSlowMotion(boolean slowMotion) {
+        Bukkit.getLogger().info("setSlowMotion: " + slowMotion);
         this.slowMotion = slowMotion;
-        this.falling = !slowMotion;
+        this.falling = true;
+        //this.falling = !slowMotion;
     }
 
     public boolean isInSlowMotion() {
@@ -127,6 +136,7 @@ public class BowPlayer {
     }
 
     public void deactivateFalling() {
+        Bukkit.getLogger().info("deactivateFalling");
         this.falling = false;
     }
 

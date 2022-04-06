@@ -2,10 +2,12 @@ package de.neo.bow.listener;
 
 import de.neo.bow.BowMotionMain;
 import de.neo.bow.obj.BowPlayer;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -15,6 +17,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 
 import java.util.HashMap;
 import java.util.UUID;
+import java.util.logging.Logger;
 
 public class PlayerBowListener implements Listener {
 
@@ -81,16 +84,24 @@ public class PlayerBowListener implements Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onDamage(EntityDamageEvent e) {
+        Logger logger = Bukkit.getLogger();
         BowMotionMain main = BowMotionMain.getInstance();
         if(e.getEntity() instanceof Player p) {
             BowPlayer bowPlayer = getBowPlayer(p);
+            logger.info("onDamage: " + p.getName() + " " + e.getCause());
             if(e.getCause() == EntityDamageEvent.DamageCause.FALL) {
                 if(bowPlayer.isFalling()) {
                     if(p.hasPermission("bow.falldamage.ignore")) {
-                        e.setDamage(0.0);
+                        logger.info(p.getName() + " has falldamage ignore permission");
+                        e.setCancelled(true);
                     }else {
+                        double multiplier = main.getConfig().getDouble("options.damage_multiplier");
+                        logger.info(p.getName() + " has no falldamage ignore permission");
+                        logger.info(multiplier + " = damage multiplier");
+                        logger.info(e.getDamage() + " = damage");
+                        logger.info(e.getDamage() * multiplier + " = new damage");
                         e.setDamage(e.getDamage() * main.getConfig().getDouble("options.damage_multiplier"));
                     }
                 }
