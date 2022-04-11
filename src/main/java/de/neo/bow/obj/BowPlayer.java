@@ -113,10 +113,8 @@ public class BowPlayer {
     }
 
     public void setSlowMotion(boolean slowMotion) {
-        Bukkit.getLogger().info("setSlowMotion: " + slowMotion);
         this.slowMotion = slowMotion;
         this.falling = true;
-        //this.falling = !slowMotion;
     }
 
     public boolean isInSlowMotion() {
