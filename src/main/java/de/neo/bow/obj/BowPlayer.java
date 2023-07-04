@@ -134,7 +134,6 @@ public class BowPlayer {
     }
 
     public void deactivateFalling() {
-        Bukkit.getLogger().info("deactivateFalling");
         this.falling = false;
     }
 
